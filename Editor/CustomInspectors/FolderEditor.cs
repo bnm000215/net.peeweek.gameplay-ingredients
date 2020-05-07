@@ -9,26 +9,21 @@ namespace GameplayIngredients.Editor
     public class FolderEditor : UnityEditor.Editor
     {
         [MenuItem("GameObject/Folder", false, 10)]
-        static void CreateFolder()
+        private static void CreateFolder()
         {
             var go = new GameObject("Folder", typeof(Folder));
-            if(Selection.activeGameObject != null && Selection.activeGameObject.scene != null)
+            if(Selection.activeGameObject != null)
             {
                 go.transform.parent = Selection.activeGameObject.transform;
             }
         }
 
-        SerializedProperty m_Color;
+        private SerializedProperty m_Color;
 
-        private void OnEnable()
-        {
+        private void OnEnable() => 
             m_Color = serializedObject.FindProperty("Color");
-        }
 
-        public override bool HasPreviewGUI()
-        {
-            return false;
-        }
+        public override bool HasPreviewGUI() => false;
 
         public override void OnInspectorGUI()
         {
@@ -40,7 +35,6 @@ namespace GameplayIngredients.Editor
                 serializedObject.ApplyModifiedProperties();
             }
         }
-
     }
 }
 

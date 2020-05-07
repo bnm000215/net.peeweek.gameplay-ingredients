@@ -1,51 +1,19 @@
 ![](https://raw.githubusercontent.com/peeweek/net.peeweek.gameplay-ingredients/master/Documentation%7E/Images/site-banner.png)
 
-[![openupm](https://img.shields.io/npm/v/net.peeweek.gameplay-ingredients?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/net.peeweek.gameplay-ingredients/) [![Documentation Status](https://readthedocs.org/projects/pip/badge/?version=stable)](http://pip.pypa.io/en/stable/?badge=stable)
+Gameplay Ingredients  - 게임과 프로토 타입을 제작하는 동안 간단한 작업을 용이하게하는 스크립트 모음.
 
-Gameplay Ingredients for your Unity Games - A collection of scripts that ease simple tasks while making games and prototypes.
+<u>도큐먼트 문서 :</u> [https://peeweek.readthedocs.io/en/latest/gameplay-ingredients/](https://peeweek.readthedocs.io/en/latest/gameplay-ingredients/)
 
-<u>You can read Documentation at this address :</u> [https://peeweek.readthedocs.io/en/latest/gameplay-ingredients/](https://peeweek.readthedocs.io/en/latest/gameplay-ingredients/)
+### 설치 방법
 
-## Requirements
+패키지 매니저를 사용한 설치 방법을 소개하겠습니다.
 
-* **Unity 2019.3** (Older versions compatible with 2018.3 / 2019.1 / 2019.2)
-* Package Manager UI
-* (**Optional** : Command-line Git installed on your system, for example [Git For Windows](https://gitforwindows.org/))
+- 해당 GanmeplayIngredient - Simple 깃 주소를 복사합니다.
+- 여러분들의 프로젝트를 열고 `Window/Package Manager` 창을 오픈한 뒤, + 버튼을 선택하고 `Add Package from Git...`을 클릭한뒤 입력창에 깃 주소를 작성하여 추가 버튼을 클릭합니다.
 
-## How to install
-
-### Install as Local Package
-
-You can use a manual, local package installation if you need to alter the code locally or update the code base regularly. 
-
-- Clone this repository somewhere of your liking
-- In your project, open the `Window/Package Manager` window and use the + button to select the `Add Package from Disk...` option.
-- Navigate to your repository folder and select the `package.json` file
-- The package shall be added as a **local package**
-
-### Install via OpenUPM
-
-The package is available on the [openupm registry](https://openupm.com). It's recommended to install it via [openupm-cli](https://github.com/openupm/openupm-cli).
-
-```
-openupm add net.peeweek.gameplay-ingredients
-```
-
-### Git Reference Version
-
-- Ensure you have a **[Command Line Git](https://gitforwindows.org/) Installed**
-- With Unity 2019.3 closed, edit the `Packages/manifest.json` with a text editor
-- Append the line `    "net.peeweek.gameplay-ingredients": "https://github.com/peeweek/net.peeweek.gameplay-ingredients.git#2019.3.5",` under `dependencies`
-
-You can check that the package was imported by looking at the project window, under Packages/ Hierarchy, there should be a `Gameplay Ingredients` hierarchy
-
-# Version / Tag Compatibility
-
-Gameplay Ingredients comes at latest version with the following compatibility:
-
-**Unity 2019.3** : clone and check out the `master` branch at the tag `2019.3.5` 
-
-#### Older Versions
-
-* **Unity 2018.3 / 2018.4 :** choose the tag `2018.3.0`
-* **Unity 2019.1 / 2019.2 :** choose the tag `2019.1.2` 
+### 지원하는 기능 
+Manager  
+Messager  
+AdvancedHierarchyView  
+GameViewLink  
+SceneViewPOV  

@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -10,12 +8,12 @@ namespace GameplayIngredients.Editor
 {
     public class SceneViewPOV : PopupWindowContent
     {
-        static ScenePOVRoot POVRoot;
+        private static ScenePOVRoot POVRoot;
 
-        const string kPOVObjectName = "__SceneView__POV__";
+        private const string kPOVObjectName = "__SceneView__POV__";
 
         [InitializeOnLoadMethod]
-        static void Initialize()
+        private static void Initialize()
         {
             SceneManager.activeSceneChanged -= EditorSceneManager_activeSceneChanged;
             SceneManager.sceneLoaded -= SceneManager_sceneLoaded;
@@ -26,20 +24,14 @@ namespace GameplayIngredients.Editor
             SceneManager.sceneUnloaded += SceneManager_sceneUnloaded;
         }
 
-        private static void SceneManager_sceneUnloaded(Scene arg0)
-        {
+        private static void SceneManager_sceneUnloaded(Scene arg0) =>
             CheckPOVGameObjects();
-        }
 
-        private static void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1)
-        {
+        private static void SceneManager_sceneLoaded(Scene arg0, LoadSceneMode arg1) =>
             CheckPOVGameObjects();
-        }
 
-        private static void EditorSceneManager_activeSceneChanged(Scene arg0, Scene arg1)
-        {
+        private static void EditorSceneManager_activeSceneChanged(Scene arg0, Scene arg1) =>
             CheckPOVGameObjects();
-        }
 
         private static void CheckPOVGameObjects()
         {
@@ -48,42 +40,34 @@ namespace GameplayIngredients.Editor
 
             var activeScene = SceneManager.GetActiveScene();
 
-            ScenePOVRoot[] allRoots = GameObject.FindObjectsOfType<ScenePOVRoot>();
-            ScenePOVRoot activePOV = null; 
+            var allRoots = GameObject.FindObjectsOfType<ScenePOVRoot>();
+            ScenePOVRoot activePOV = null;
             foreach (var povRoot in allRoots)
-            {
                 if (povRoot.Scene == activeScene)
                     activePOV = povRoot;
-            }
 
             if (activePOV == null)
             {
                 activePOV = CreatePOVRootObject();
                 MarkDirtyPOVScene(activePOV);
-            };
+            }
 
             POVRoot = activePOV;
         }
 
-        static ScenePOVRoot CreatePOVRootObject()
+        private static ScenePOVRoot CreatePOVRootObject()
         {
-            var povRoot = new GameObject(kPOVObjectName);
-            povRoot.isStatic = true;
-            povRoot.hideFlags = HideFlags.HideInHierarchy;
+            var povRoot = new GameObject(kPOVObjectName) {isStatic = true, hideFlags = HideFlags.HideInHierarchy};
             return povRoot.AddComponent<ScenePOVRoot>();
         }
 
-        public static void ShowPopup(Rect buttonRect, SceneView sceneView)
-        {
+        public static void ShowPopup(Rect buttonRect, SceneView sceneView) => 
             PopupWindow.Show(buttonRect, new SceneViewPOV(sceneView));
-        }
 
-        private SceneView m_SceneView;
+        private readonly SceneView m_SceneView;
 
-        public SceneViewPOV(SceneView sceneView)
-        {
+        public SceneViewPOV(SceneView sceneView) => 
             m_SceneView = sceneView;
-        }
 
         public override Vector2 GetWindowSize()
         {
@@ -91,12 +75,10 @@ namespace GameplayIngredients.Editor
             return new Vector2(256.0f, 80.0f + POVRoot.AllPOV.Length * 20);
         }
 
-        static void MarkDirtyPOVScene(ScenePOVRoot root)
-        {
+        private static void MarkDirtyPOVScene(ScenePOVRoot root) => 
             EditorSceneManager.MarkSceneDirty(root.gameObject.scene);
-        }
 
-        string m_NewPOVName = "New POV";
+        private string m_NewPOVName = "New POV";
 
         public override void OnGUI(Rect rect)
         {
@@ -130,12 +112,12 @@ namespace GameplayIngredients.Editor
                     using (new EditorGUILayout.HorizontalScope())
                     {
                         if (GUILayout.Button(pov.name, EditorStyles.foldout))
-                        {
                             m_SceneView.AlignViewToObject(pov.transform);
-                        }
+
                         if (GUILayout.Button("X", GUILayout.Width(32)))
                         {
-                            if (EditorUtility.DisplayDialog("Destroy POV?", "Do you want to destroy this POV: " + pov.gameObject.name + " ?", "Yes", "No"))
+                            if (EditorUtility.DisplayDialog("Destroy POV?",
+                                "Do you want to destroy this POV: " + pov.gameObject.name + " ?", "Yes", "No"))
                             {
                                 GameObject.DestroyImmediate(pov.gameObject);
                                 MarkDirtyPOVScene(POVRoot);
@@ -146,12 +128,13 @@ namespace GameplayIngredients.Editor
             }
             else
             {
-                EditorGUILayout.HelpBox("No POV Root found (Create an Empty Game Object named 'POV_ROOT') or no SceneView currently active", MessageType.Warning)   ;
+                EditorGUILayout.HelpBox(
+                    "No POV Root found (Create an Empty Game Object named 'POV_ROOT') or no SceneView currently active",
+                    MessageType.Warning);
             }
-
         }
 
-        static class Styles
+        private static class Styles
         {
             public static void Header(string name)
             {
@@ -166,4 +149,3 @@ namespace GameplayIngredients.Editor
         }
     }
 }
-

@@ -8,12 +8,10 @@ namespace GameplayIngredients.Editor
     [CustomPropertyDrawer(typeof(TypeDropDownAttribute))]
     public class TypeDropDownPropertyDrawer : PropertyDrawer
     {
-        Dictionary<string, List<string>> m_AssignableTypeNames;
+        private Dictionary<string, List<string>> m_AssignableTypeNames;
 
-        Type type;
-
+        private Type type;
         
-
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
             if(type == null)
@@ -27,12 +25,10 @@ namespace GameplayIngredients.Editor
             EditorGUI.BeginChangeCheck();
             int newVal = EditorGUI.Popup(position, index, m_AssignableTypeNames[TypeName].ToArray());
             if(EditorGUI.EndChangeCheck() && index != newVal)
-            {
                 property.stringValue = m_AssignableTypeNames[TypeName][newVal];
-            }
         }
 
-        void CacheType(Type baseType)
+        private void CacheType(Type baseType)
         {
             if (m_AssignableTypeNames == null)
             {

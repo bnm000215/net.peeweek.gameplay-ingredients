@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace GameplayIngredients.Editor
 {
-    static class AdvancedHierarchyPreferences
+    internal static class AdvancedHierarchyPreferences
     {
         [SettingsProvider]
         public static SettingsProvider GetAdvancedHierarchyPreferences()
@@ -20,12 +20,12 @@ namespace GameplayIngredients.Editor
             return provider;
         }
 
-        static Dictionary<Type, bool> s_CachedVisibility;
-        static readonly string componentPrefix = "GameplayIngredients.HierarchyHints.";
-        static readonly string staticPref = "GameplayIngredients.HierarchyHints.Static";
+        private static Dictionary<Type, bool> s_CachedVisibility;
+        private const string componentPrefix = "GameplayIngredients.HierarchyHints.";
+        private const string staticPref = "GameplayIngredients.HierarchyHints.Static";
 
         [InitializeOnLoadMethod]
-        static void Initialize()
+        private static void Initialize()
         {
             if (s_CachedVisibility == null)
                 s_CachedVisibility = new Dictionary<Type, bool>();
@@ -39,17 +39,12 @@ namespace GameplayIngredients.Editor
             }
         }
 
-        public static bool showStatic { get { return EditorPrefs.GetBool(staticPref, true); } }
+        public static bool showStatic => EditorPrefs.GetBool(staticPref, true);
 
-        public static bool IsVisible(Type t)
-        {
-            if (s_CachedVisibility.ContainsKey(t))
-                return s_CachedVisibility[t];
-            else
-                return false;
-        }
+        public static bool IsVisible(Type t) => 
+            s_CachedVisibility.ContainsKey(t) && s_CachedVisibility[t];
 
-        static void OnGUI(string search)
+        private static void OnGUI(string search)
         {
             EditorGUIUtility.labelWidth = 260;
             EditorGUI.indentLevel ++;
@@ -90,7 +85,7 @@ namespace GameplayIngredients.Editor
             EditorGUI.indentLevel -= 2;
         }
 
-        static void SetValue(Type type, bool value, bool repaint = false)
+        private static void SetValue(Type type, bool value, bool repaint = false)
         {
             s_CachedVisibility[type] = value;
             EditorPrefs.SetBool(componentPrefix + type.Name, value);
@@ -99,26 +94,18 @@ namespace GameplayIngredients.Editor
 
         }
 
-        static void ToggleAll(bool value)
+        private static void ToggleAll(bool value)
         {
             var allTypes = s_CachedVisibility.Keys.ToArray();
-            foreach(var type in allTypes)
-            {
-                SetValue(type, value);
-            }
+            foreach(var type in allTypes) SetValue(type, value);
             EditorApplication.RepaintHierarchyWindow();
         }
 
-        static void ToggleInvert()
+        private static void ToggleInvert()
         {
             var allTypes = s_CachedVisibility.Keys.ToArray();
-            foreach (var type in allTypes)
-            {
-                SetValue(type, !s_CachedVisibility[type]);
-            }
+            foreach (var type in allTypes) SetValue(type, !s_CachedVisibility[type]);
             EditorApplication.RepaintHierarchyWindow();
         }
-
     }
-
 }

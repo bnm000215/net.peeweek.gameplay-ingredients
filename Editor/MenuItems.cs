@@ -1,42 +1,24 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using System;
-using System.Reflection;
+using System.Linq;
 using UnityEngine.SceneManagement;
+using Object = UnityEngine.Object;
 
 namespace GameplayIngredients.Editor
 {
     public static class MenuItems
     {
         public const int kWindowMenuPriority = 100;
-        public const int kPlayMenuPriority = 160;
-        public const int kMenuPriority = 330;
-
-        #region PLAY HERE
-
-        [MenuItem("Edit/Play from SceneView Position #%&P", priority = kPlayMenuPriority)]
-        static void PlayHere()
-        {
-            EditorApplication.isPlaying = true;
-        }
-
-        [MenuItem("Edit/Play from SceneView Position #%&P", priority = kPlayMenuPriority, validate = true)]
-        static bool PlayHereValidate()
-        {
-            return PlayFromHere.IsReady;
-        }
-
-        #endregion
-
+ 
         #region GROUP_UNGROUP
 
-        const int kGroupMenuIndex = 500;
-        const string kGroupMenuString = "Edit/Group Selected %G";
-        const string kUnGroupMenuString = "Edit/Un-Group Selected %#G";
+        private const int kGroupMenuIndex = 500;
+        private const string kGroupMenuString = "Edit/Group Selected %G";
+        private const string kUnGroupMenuString = "Edit/Un-Group Selected %#G";
 
         [MenuItem(kGroupMenuString, priority = kGroupMenuIndex, validate = false)]
-        static void Group()
+        private static void Group()
         {
             if (Selection.gameObjects.Length <= 1)
                 return;
@@ -45,29 +27,11 @@ namespace GameplayIngredients.Editor
             Transform parent = selected[0].transform.parent;
             Scene scene = selected[0].scene;
 
-            bool sparseParents = false;
+            bool sparseParents = selected.Any(obj => obj.transform.parent != parent || obj.scene != scene);
 
-            foreach (var obj in selected)
-            {
-                if (obj.transform.parent != parent || obj.scene != scene)
-                {
-                    sparseParents = true;
-                    break;
-                }
-            }
+            if (sparseParents) parent = null;
 
-            if (sparseParents)
-            {
-                parent = null;
-                scene = SceneManager.GetActiveScene();
-            }
-
-            Vector3 posSum = Vector3.zero;
-
-            foreach (var go in selected)
-            {
-                posSum += go.transform.position;
-            }
+            Vector3 posSum = selected.Aggregate(Vector3.zero, (current, go) => current + go.transform.position);
 
             GameObject groupObj = new GameObject("Group");
             groupObj.transform.position = posSum / selected.Length;
@@ -83,20 +47,18 @@ namespace GameplayIngredients.Editor
         }
 
         [MenuItem(kGroupMenuString, priority = kGroupMenuIndex, validate = true)]
-        static bool GroupCheck()
-        {
-            return (Selection.gameObjects.Length > 1);
-        }
+        private static bool GroupCheck() => 
+            Selection.gameObjects.Length > 1;
 
 
         [MenuItem(kUnGroupMenuString, priority = kGroupMenuIndex+1, validate = false)]
-        static void UnGroup()
+        private static void UnGroup()
         {
             if (Selection.gameObjects.Length == 0)
                 return;
 
             var selected = Selection.gameObjects;
-            List<Transform> oldParents = new List<Transform>();
+            var oldParents = new List<Transform>();
             foreach(var go in selected)
             {
                 if(go.transform.parent != null)
@@ -107,62 +69,18 @@ namespace GameplayIngredients.Editor
                     go.transform.parent = go.transform.parent.parent;
                 }
             }
-
-            List<GameObject> toDelete = new List<GameObject>();
-
+            
             // Cleanup old parents
-            foreach(var parent in oldParents)
-            {
-                var go = parent.gameObject;
-                if(parent.childCount == 0 && parent.GetComponents<Component>().Length == 1) // if no more children and only transform/rectTransform
-                {
-                    toDelete.Add(go);
-                }
-            }
+            var toDelete = (from parent in oldParents let go = parent.gameObject where parent.childCount == 0 && parent.GetComponents<Component>().Length == 1 select go).ToList();
 
             foreach (var trash in toDelete)
-                GameObject.DestroyImmediate(trash);
+                Object.DestroyImmediate(trash);
             
         }
 
         [MenuItem(kUnGroupMenuString, priority = kGroupMenuIndex+1, validate = true)]
-        static bool UnGroupCheck()
-        {
-            return (Selection.gameObjects.Length > 0);
-        }
-
-        #endregion
-
-        #region ASSETS
-
-        [UnityEditor.MenuItem("Assets/Create/Game Level")]
-        static void CreateGameLevel()
-        {
-            GameplayIngredients.Editor.AssetFactory.CreateAssetInProjectWindow<GameLevel>("", "New Game Level.asset");
-        }
-
-        #endregion
-
-        #region HELP
-
-        [MenuItem("Help/Gameplay Ingredients/Documentation")]
-        static void Help()
-        {
-            Application.OpenURL("https://peeweek.readthedocs.io/en/latest/gameplay-ingredients/");
-        }
-
-        [MenuItem("Help/Gameplay Ingredients/GitHub Repository (Issues and Releases)")]
-        static void GitHub()
-        {
-            Application.OpenURL("https://github.com/peeweek/net.peeweek.gameplay-ingredients/");
-        }
-
-        [MenuItem("Help/Gameplay Ingredients/OpenUPM page")]
-        static void OpenUPM()
-        {
-            Application.OpenURL("https://openupm.com/packages/net.peeweek.gameplay-ingredients/");
-        }
-
+        private static bool UnGroupCheck() => 
+            (Selection.gameObjects.Length > 0);
 
         #endregion
     }

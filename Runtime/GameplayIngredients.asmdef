@@ -2,9 +2,7 @@
     "name": "GameplayIngredients",
     "references": [
         "NaughtyAttributes.Core",
-        "Cinemachine",
-        "Unity.Timeline",
-        "UnityEngine.UI"
+        "Unity.Timeline"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

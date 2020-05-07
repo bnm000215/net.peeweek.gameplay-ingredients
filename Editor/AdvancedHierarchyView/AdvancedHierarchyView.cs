@@ -4,42 +4,34 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.VFX;
 using UnityEditor;
-using GameplayIngredients.StateMachines;
 using UnityEngine.Playables;
-using System.Linq;
 using System.Reflection;
+using static UnityEditor.EditorApplication;
 
 namespace GameplayIngredients.Editor
 {
     [InitializeOnLoad]
     public static class AdvancedHierarchyView
     {
-        const string kMenuPath = "Edit/Advanced Hierarchy View %.";
+        private const string kMenuPath = "Edit/Advanced Hierarchy View %.";
         public const int kMenuPriority = 230;
 
         [MenuItem(kMenuPath, priority = kMenuPriority, validate = false)]
-        static void Toggle()
-        {
-            if (Active)
-                Active = false;
-            else
-                Active = true;
-        }
+        private static void Toggle() => 
+            Active = !Active;
 
         [MenuItem(kMenuPath, priority = kMenuPriority, validate = true)]
-        static bool ToggleCheck()
+        private static bool ToggleCheck()
         {
             Menu.SetChecked(kMenuPath, Active);
             return SceneView.sceneViews.Count > 0;
         }
 
-        static readonly string kPreferenceName = "GameplayIngredients.HierarchyHints";
+        private const string kPreferenceName = "GameplayIngredients.HierarchyHints";
+
         public static bool Active
         {
-            get
-            {
-                return EditorPrefs.GetBool(kPreferenceName, false);
-            }
+            get => EditorPrefs.GetBool(kPreferenceName, false);
 
             set
             {
@@ -50,12 +42,12 @@ namespace GameplayIngredients.Editor
 
         static AdvancedHierarchyView()
         {
-            EditorApplication.hierarchyWindowItemOnGUI -= HierarchyOnGUI;
-            EditorApplication.hierarchyWindowItemOnGUI += HierarchyOnGUI;
+            hierarchyWindowItemOnGUI -= HierarchyOnGUI;
+            hierarchyWindowItemOnGUI += HierarchyOnGUI;
             InitializeTypes();
         }
 
-        static void InitializeTypes()
+        private static void InitializeTypes()
         {
             RegisterComponentType( typeof(MonoBehaviour), "cs Script Icon");
             RegisterComponentType( typeof(Camera), "Camera Icon");
@@ -91,10 +83,7 @@ namespace GameplayIngredients.Editor
                         if(type.IsSubclassOf(typeof(MonoBehaviour)) && !type.IsAbstract)
                         {
                             var attrib = type.GetCustomAttribute<AdvancedHierarchyIconAttribute>();
-                            if(attrib != null)
-                            {
-                                RegisterComponentType(type, attrib.icon);
-                            }
+                            if(attrib != null) RegisterComponentType(type, attrib.icon);
                         }
                     }
                 }
@@ -114,10 +103,10 @@ namespace GameplayIngredients.Editor
                 s_Definitions.Add(t, iconName);
         }
 
-        public static IEnumerable<Type> allTypes { get { return s_Definitions.Keys; } }
-        static Dictionary<Type, string> s_Definitions = new Dictionary<Type, string>();
+        public static IEnumerable<Type> allTypes => s_Definitions.Keys;
+        private static Dictionary<Type, string> s_Definitions = new Dictionary<Type, string>();
 
-        static void HierarchyOnGUI(int instanceID, Rect selectionRect)
+        private static void HierarchyOnGUI(int instanceID, Rect selectionRect)
         {
             if (!Active) return;
 
@@ -156,37 +145,34 @@ namespace GameplayIngredients.Editor
             GUI.color = c;
         }
 
-        static int GetObjectDepth(Transform t, int depth=0)
+        private static int GetObjectDepth(Transform t, int depth = 0)
         {
-            if (t.parent == null)
-                return depth;
-            else
-                return GetObjectDepth(t.parent, depth + 1);
+            while (true)
+            {
+                if (t.parent == null) return depth;
+                t = t.parent;
+                depth += 1;
+            }
         }
 
-        
-        static Rect DrawIcon(Rect rect, GUIContent content, Color color, int size = 16)
+
+        private static Rect DrawIcon(Rect rect, GUIContent content, Color color, int size = 16)
         {
             GUI.color = color;
             GUI.Label(rect, content, Styles.icon);
-            rect.width = rect.width - size;
+            rect.width -= size;
             return rect;
         }
 
-        static class Contents
+        private static class Contents
         {
-            static Dictionary<Type, GUIContent> s_Icons = new Dictionary<Type, GUIContent>();
+            private static readonly Dictionary<Type, GUIContent> s_Icons = new Dictionary<Type, GUIContent>();
 
-            public static void AddIcon(Type type, string IconName)
+            private static void AddIcon(Type type, string IconName)
             {
-                GUIContent icon;
-
                 Texture texture = AssetDatabase.LoadAssetAtPath<Texture>(IconName);
 
-                if (texture == null)
-                    icon = EditorGUIUtility.IconContent(IconName);
-                else
-                    icon = new GUIContent(texture);
+                var icon = texture == null ? EditorGUIUtility.IconContent(IconName) : new GUIContent(texture);
 
                 s_Icons.Add(type, icon);
             }
@@ -200,7 +186,7 @@ namespace GameplayIngredients.Editor
             }
         }
 
-        static class Colors
+        private static class Colors
         {
             public static Color orange = new Color(1.0f, 0.7f, 0.1f);
             public static Color red = new Color(1.0f, 0.4f, 0.3f);
@@ -209,30 +195,29 @@ namespace GameplayIngredients.Editor
             public static Color blue = new Color(0.5f, 0.8f, 1.0f);
             public static Color violet = new Color(0.8f, 0.5f, 1.0f);
             public static Color purple = new Color(1.0f, 0.5f, 0.8f);
-            public static Color dimGray = new Color(0.4f, 0.4f, 0.4f, 0.2f);
+            public static readonly Color dimGray = new Color(0.4f, 0.4f, 0.4f, 0.2f);
         }
 
-        static class Styles
+        private static class Styles
         {
-            public static GUIStyle rightLabel;
-            public static GUIStyle icon;
+            private static GUIStyle rightLabel;
+            public static readonly GUIStyle icon;
 
-            public static Color proBackground = new Color(0.25f, 0.25f, 0.25f, 1.0f);
-            public static Color personalBackground = new Color(0.75f, 0.75f, 0.75f, 1.0f);
+            public static readonly Color proBackground = new Color(0.25f, 0.25f, 0.25f, 1.0f);
+            public static readonly Color personalBackground = new Color(0.75f, 0.75f, 0.75f, 1.0f);
 
             static Styles()
             {
-                rightLabel = new GUIStyle(EditorStyles.label);
-                rightLabel.alignment = TextAnchor.MiddleRight;
-                rightLabel.normal.textColor = Color.white;
-                rightLabel.onNormal.textColor = Color.white;
-
-                rightLabel.active.textColor = Color.white;
-                rightLabel.onActive.textColor = Color.white;
-
-                icon = new GUIStyle(rightLabel);
-                icon.padding = new RectOffset();
-                icon.margin = new RectOffset();
+                rightLabel = new GUIStyle(EditorStyles.label)
+                {
+                    alignment = TextAnchor.MiddleRight,
+                    normal = {textColor = Color.white},
+                    onNormal = {textColor = Color.white},
+                    active = {textColor = Color.white},
+                    onActive = {textColor = Color.white}
+                };
+                
+                icon = new GUIStyle(rightLabel) {padding = new RectOffset(), margin = new RectOffset()};
             }
         }
 

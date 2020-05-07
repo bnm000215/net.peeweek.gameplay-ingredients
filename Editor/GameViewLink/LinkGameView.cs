@@ -2,15 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using Cinemachine;
 
 namespace GameplayIngredients.Editor
 {
     public static class LinkGameView
     {
-        static readonly string kPreferenceName = "GameplayIngredients.LinkGameView";
-        static readonly string kCinemachinePreferenceName = "GameplayIngredients.LinkGameViewCinemachine";
-        static readonly string kLinkCameraName = "___LINK__SCENE__VIEW__CAMERA___";
+        private const string kPreferenceName = "GameplayIngredients.LinkGameView";
+        private const string kCinemachinePreferenceName = "GameplayIngredients.LinkGameViewCinemachine";
+        private const string kLinkCameraName = "___LINK__SCENE__VIEW__CAMERA___";
 
         public static bool Active
         {
@@ -31,8 +30,8 @@ namespace GameplayIngredients.Editor
 
                 m_Active = value;
 
-                if(s_GameObject != null)
-                    s_GameObject.SetActive(value);
+                if(Camera != null)
+                    Camera.SetActive(value);
 
                 UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
             }
@@ -55,129 +54,83 @@ namespace GameplayIngredients.Editor
                 if (!Application.isPlaying)
                     EditorPrefs.SetBool(kCinemachinePreferenceName, value);
 
-                UpdateCinemachinePreview(value);
-
                 m_CinemachineActive = value;
             }
         }
 
-        static bool m_Active = false;
-        static bool m_CinemachineActive = false;
-
-
-
-        public static SceneView LockedSceneView
-        {
-            get
-            {
-                return s_LockedSceneView;
-            }
-
-            set
-            {
-                s_LockedSceneView = value;
-            }
-        }
-
-        static SceneView s_LockedSceneView;
+        private static bool m_Active ;
+        private static bool m_CinemachineActive ;
+        
+        public static SceneView LockedSceneView { get; set; }
 
         [InitializeOnLoadMethod]
-        static void Initialize()
+        private static void Initialize()
         {
             SceneView.duringSceneGui += Update;
             EditorApplication.playModeStateChanged += OnPlayModeChanged;
         }
 
-        static void OnPlayModeChanged(PlayModeStateChange state)
+        private static void OnPlayModeChanged(PlayModeStateChange state)
         {
             // Reset State when entering editmode or play mode
             if(state == PlayModeStateChange.EnteredEditMode || state == PlayModeStateChange.EnteredPlayMode)
             {
-                if (Active)
-                    Active = true;
-                else
-                    Active = false;
+                Active = Active;
 
-                if (CinemachineActive)
-                    CinemachineActive = true;
-                else
-                    CinemachineActive = false;
-
+                CinemachineActive = CinemachineActive;
             }
             else // Cleanup before switching state
             {
-                if (s_GameObject != null)
-                    Object.DestroyImmediate(s_GameObject);
+                if (Camera != null)
+                    Object.DestroyImmediate(Camera);
             }
         }
 
-        const string kMenuPath = "Edit/Link SceneView and GameView %,";
+        private const string kMenuPath = "Edit/Link SceneView and GameView %,";
         public const int kMenuPriority = 230;
 
         [MenuItem(kMenuPath, priority = kMenuPriority, validate = false)]
-        static void Toggle()
-        {
-            if (Active)
-                Active = false;
-            else
-                Active = true;
-        }
+        private static void Toggle() => Active = !Active;
 
         [MenuItem(kMenuPath, priority = kMenuPriority, validate = true)]
-        static bool ToggleCheck()
+        private static bool ToggleCheck()
         {
             Menu.SetChecked(kMenuPath, Active);
             return SceneView.sceneViews.Count > 0;
         }
 
-        public static GameObject Camera { get {return s_GameObject;} }
-        static GameObject s_GameObject;
+        public static GameObject Camera { get; private set; }
 
-        static void Update(SceneView sceneView)
+        private static void Update(SceneView sceneView)
         {
             // Check if camera Exists
-            if (s_GameObject == null)
+            if (Camera == null)
             {
                 // If disconnected (should not happen, but hey...)
                 var result = GameObject.Find(kLinkCameraName);
 
-                if (result != null) // reconnect
-                    s_GameObject = result;
-                else // Create the camera if it does not exist
-                    s_GameObject = CreateLinkedCamera();
+                Camera = result != null ? result : CreateLinkedCamera();
 
                 if (Application.isPlaying)
                     Active = false;
             }
 
-            // If we have a VirtualCameraManager, manage its state here
-            if(Application.isPlaying && Manager.Has<VirtualCameraManager>())
-            {
-                var camera = Manager.Get<VirtualCameraManager>().gameObject;
-
-                if(camera.activeInHierarchy && Active) // We need to disable the VirtualCameraManager
-                {
-                    camera.SetActive(false);
-                }
-                else if (!camera.activeInHierarchy && !Active) // We need to re-enable the VirtualCameraManager
-                {
-                    camera.SetActive(true);
-                }
-            }
-
             if (Active && !CinemachineActive)
             {
-                var sv = s_LockedSceneView == null ? SceneView.lastActiveSceneView : s_LockedSceneView;
+                var sv = LockedSceneView == null ? SceneView.lastActiveSceneView : LockedSceneView;
                 var sceneCamera = sv.camera;
-                var camera = s_GameObject.GetComponent<Camera>();
-                bool needRepaint = sceneCamera.transform.position != camera.transform.position
-                    || sceneCamera.transform.rotation != camera.transform.rotation
-                    || sceneCamera.fieldOfView != camera.fieldOfView;
+                var camera = Camera.GetComponent<Camera>();
+                var transform = sceneCamera.transform;
+                var transform2 = camera.transform;
+                bool needRepaint = transform.position != transform2.position
+                                   || transform.rotation != transform2.rotation
+                                   || sceneCamera.fieldOfView != camera.fieldOfView;
 
                 if(needRepaint)
                 {
-                    s_GameObject.transform.position = sceneCamera.transform.position;
-                    s_GameObject.transform.rotation = sceneCamera.transform.rotation;
+                    var transform1 = sceneCamera.transform;
+                    Camera.transform.position = transform1.position;
+                    Camera.transform.rotation = transform1.rotation;
                     camera.orthographic = sceneCamera.orthographic;
                     camera.fieldOfView = sceneCamera.fieldOfView;
                     camera.orthographicSize = sceneCamera.orthographicSize;
@@ -188,12 +141,12 @@ namespace GameplayIngredients.Editor
             }
         }
 
-        const string kDefaultLinkPrefabName = "LinkGameViewCamera";
+        private const string kDefaultLinkPrefabName = "LinkGameViewCamera";
 
-        static GameObject CreateLinkedCamera()
+        private static GameObject CreateLinkedCamera()
         {
             // Try to find an Asset named as the default name
-            string[] assets = AssetDatabase.FindAssets(kDefaultLinkPrefabName);
+            var assets = AssetDatabase.FindAssets(kDefaultLinkPrefabName);
             if(assets.Length > 0)
             {
                 string path = AssetDatabase.GUIDToAssetPath(assets[0]);
@@ -201,7 +154,7 @@ namespace GameplayIngredients.Editor
 
                 if (obj != null)
                 {
-                    var instance = GameObject.Instantiate(obj);
+                    var instance = Object.Instantiate(obj);
                     if(instance.GetComponent<Camera>() != null)
                     {
                         instance.hideFlags = HideFlags.HideAndDontSave;
@@ -222,30 +175,12 @@ namespace GameplayIngredients.Editor
 
 
             // Otherwise ... Create default from code
-            var go = new GameObject(kLinkCameraName);
-            go.hideFlags = HideFlags.HideAndDontSave;
-            go.tag = "MainCamera";
+            var go = new GameObject(kLinkCameraName) {hideFlags = HideFlags.HideAndDontSave, tag = "MainCamera"};
             var camera = go.AddComponent<Camera>();
             camera.depth = int.MaxValue;
             go.SetActive(Active);
             return go;
         }
-
-        static void UpdateCinemachinePreview(bool value)
-        {
-            if (s_GameObject == null)
-                return;
-
-            CinemachineBrain brain;
-
-            if (!s_GameObject.TryGetComponent<CinemachineBrain>(out brain))
-            {
-                brain = s_GameObject.AddComponent<CinemachineBrain>();
-            }
-
-            brain.enabled = value;
-        }
-
     }
 }
 

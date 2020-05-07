@@ -26,8 +26,6 @@ namespace GameplayIngredients.Editor
                     break;
                 }
             }
-            if (needDiscoveryReload)
-                DiscoverWindow.Reload();
         }
     }
 }

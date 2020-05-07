@@ -8,12 +8,9 @@ namespace GameplayIngredients
     {
         public delegate void Message(GameObject instigator = null);
 
-        private static Dictionary<string, List<Message>> m_RegisteredMessages;
+        private static readonly Dictionary<string, List<Message>> m_RegisteredMessages;
 
-        static Messager()
-        {
-            m_RegisteredMessages = new Dictionary<string, List<Message>>();
-        }
+        static Messager() => m_RegisteredMessages = new Dictionary<string, List<Message>>();
 
         public static void RegisterMessage(string messageName, Message message)
         {
@@ -24,7 +21,7 @@ namespace GameplayIngredients
                 m_RegisteredMessages[messageName].Add(message);
             else
             {
-                Debug.LogWarning(string.Format("Messager : {0} entry already contains reference to message.", messageName));
+                Debug.LogWarning($"Messager : {messageName} entry already contains reference to message.");
             }
         }
 
@@ -34,15 +31,12 @@ namespace GameplayIngredients
             if(currentEvent.Contains(message))
                 currentEvent.Remove(message);
 
-            if (currentEvent == null || currentEvent.Count == 0)
+            if (currentEvent.Count == 0)
                 m_RegisteredMessages.Remove(messageName);
         }
 
         public static void Send(string eventName, GameObject instigator = null)
         {
-            if(GameplayIngredientsSettings.currentSettings.verboseCalls)
-                Debug.Log(string.Format("[MessageManager] Broadcast: {0}", eventName));
-
             if (m_RegisteredMessages.ContainsKey(eventName))
             {
                 try
@@ -51,20 +45,14 @@ namespace GameplayIngredients
                     var messages = m_RegisteredMessages[eventName].ToArray();
                     foreach (var message in messages)
                     {
-                        if(message != null)
-                            message.Invoke(instigator);
+                        message?.Invoke(instigator);
                     }
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError(string.Format("Messager : Caught {0} while sending Message {1}", e.GetType().Name, eventName));
+                    Debug.LogError($"Messager : Caught {e.GetType().Name} while sending Message {eventName}");
                     Debug.LogException(e);
                 }
-            }
-            else
-            {
-                if(GameplayIngredientsSettings.currentSettings.verboseCalls)
-                    Debug.Log("[MessageManager] could not find any listeners for event : " + eventName);
             }
         }
     }

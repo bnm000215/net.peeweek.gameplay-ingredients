@@ -3,7 +3,6 @@ using UnityEditor;
 
 namespace GameplayIngredients.Editor
 {
-    [CustomPropertyDrawer(typeof(Actions.ToggleBehaviourAction.BehaviourToggle))]
     public class BehaviourTogglePropertyDrawer : PropertyDrawer
     {
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)

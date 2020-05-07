@@ -1,7 +1,6 @@
 using System;
 using UnityEngine;
 using UnityEngine.Playables;
-using UnityEngine.Timeline;
 
 namespace GameplayIngredients.Playables
 {
@@ -14,18 +13,13 @@ namespace GameplayIngredients.Playables
         public override void OnBehaviourPlay(Playable playable, FrameData info)
         {
             base.OnBehaviourPlay(playable, info);
-            if(StartMessage != "" )
+            if(StartMessage != string.Empty )
             {
                 if (Application.isPlaying)
                     Messager.Send(StartMessage, Instigator);
                 else
-                    Debug.Log("[SendMessageBehaviour] Would have sent broadcast message : '" + StartMessage + "'");
+                    Debug.Log($"[SendMessageBehaviour] BroadcastMessage를 보냈습니다 : '{StartMessage}'");
             }
-        }
-
-        public override void OnGraphStart (Playable playable)
-        {
-
         }
     }
 }
