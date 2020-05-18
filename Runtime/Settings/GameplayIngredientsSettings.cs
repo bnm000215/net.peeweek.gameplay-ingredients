@@ -22,7 +22,7 @@ namespace GameplayIngredients
         [BoxGroup("Debug")]
         [SerializeField]
         protected bool m_ShowDebugCustomManager = true;
-
+        
         private const string kAssetName = "GameplayIngredientsSettings";
 
         public static GameplayIngredientsSettings currentSettings =>

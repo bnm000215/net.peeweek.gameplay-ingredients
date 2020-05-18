@@ -14,18 +14,6 @@ namespace GameplayIngredients.Editor
                 Debug.Log("Imported GameplayIngredientsSettings");
                 WelcomeScreen.Reload();
             }
-
-            string[] allDiscovery = AssetDatabase.FindAssets("t:DiscoverAsset");
-            bool needDiscoveryReload = false;
-            foreach(var guid in allDiscovery)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-                if(importedAssets.Contains(path))
-                {
-                    needDiscoveryReload = true;
-                    break;
-                }
-            }
         }
     }
 }

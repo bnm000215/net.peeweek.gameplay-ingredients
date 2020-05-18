@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 
 namespace GameplayIngredients
 {
@@ -10,9 +7,10 @@ namespace GameplayIngredients
     {
         public readonly string icon;
 
-        public AdvancedHierarchyIconAttribute(string icon)
-        {
+        public AdvancedHierarchyIconAttribute() => 
+            icon = "cs Script Icon";
+
+        public AdvancedHierarchyIconAttribute(string icon) =>
             this.icon = icon;
-        }
     }
 }

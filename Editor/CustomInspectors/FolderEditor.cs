@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEditor;
 
 namespace GameplayIngredients.Editor
@@ -8,14 +6,12 @@ namespace GameplayIngredients.Editor
     [CustomEditor(typeof(Folder))]
     public class FolderEditor : UnityEditor.Editor
     {
-        [MenuItem("GameObject/Folder", false, 10)]
+        [MenuItem("GameObject/Folder", false, -1)]
         private static void CreateFolder()
         {
             var go = new GameObject("Folder", typeof(Folder));
-            if(Selection.activeGameObject != null)
-            {
+            if(Selection.activeGameObject != null) 
                 go.transform.parent = Selection.activeGameObject.transform;
-            }
         }
 
         private SerializedProperty m_Color;

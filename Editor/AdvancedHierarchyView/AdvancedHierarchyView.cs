@@ -6,7 +6,9 @@ using UnityEngine.VFX;
 using UnityEditor;
 using UnityEngine.Playables;
 using System.Reflection;
+using UnityEngine.Video;
 using static UnityEditor.EditorApplication;
+using Debug = UnityEngine.Debug;
 
 namespace GameplayIngredients.Editor
 {
@@ -17,7 +19,7 @@ namespace GameplayIngredients.Editor
         public const int kMenuPriority = 230;
 
         [MenuItem(kMenuPath, priority = kMenuPriority, validate = false)]
-        private static void Toggle() => 
+        private static void Toggle() =>
             Active = !Active;
 
         [MenuItem(kMenuPath, priority = kMenuPriority, validate = true)]
@@ -47,43 +49,60 @@ namespace GameplayIngredients.Editor
             InitializeTypes();
         }
 
+        
+        
         private static void InitializeTypes()
         {
-            RegisterComponentType( typeof(MonoBehaviour), "cs Script Icon");
-            RegisterComponentType( typeof(Camera), "Camera Icon");
-            RegisterComponentType( typeof(MeshRenderer), "MeshRenderer Icon");
-            RegisterComponentType( typeof(SkinnedMeshRenderer), "SkinnedMeshRenderer Icon");
-            RegisterComponentType( typeof(BoxCollider), "BoxCollider Icon");
-            RegisterComponentType( typeof(SphereCollider), "SphereCollider Icon");
-            RegisterComponentType( typeof(CapsuleCollider), "CapsuleCollider Icon");
-            RegisterComponentType( typeof(MeshCollider), "MeshCollider Icon");
-            RegisterComponentType( typeof(AudioSource), "AudioSource Icon");
-            RegisterComponentType( typeof(Animation), "Animation Icon");
-            RegisterComponentType( typeof(Animator), "Animator Icon");
-            RegisterComponentType( typeof(PlayableDirector), "PlayableDirector Icon");
-            RegisterComponentType( typeof(Light), "Light Icon");
-            RegisterComponentType( typeof(LightProbeGroup), "LightProbeGroup Icon");
-            RegisterComponentType( typeof(LightProbeProxyVolume), "LightProbeProxyVolume Icon");
-            RegisterComponentType( typeof(ReflectionProbe), "ReflectionProbe Icon");
-            RegisterComponentType( typeof(VisualEffect), "VisualEffect Icon");
-            RegisterComponentType( typeof(ParticleSystem), "ParticleSystem Icon");
-            RegisterComponentType( typeof(Canvas), "Canvas Icon");
-            RegisterComponentType( typeof(Image), "Image Icon");
-            RegisterComponentType( typeof(Text), "Text Icon");
-            RegisterComponentType( typeof(Button), "Button Icon");
-            RegisterComponentType( typeof(Folder), "Folder Icon");
-
-            foreach(var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            RegisterComponentType(typeof(Camera), "Camera Icon");
+            RegisterComponentType(typeof(TrailRenderer), "TrailRenderer Icon");
+            RegisterComponentType(typeof(LineRenderer), "LineRenderer Icon");
+            RegisterComponentType(typeof(SpriteRenderer), "SpriteRenderer Icon");
+            RegisterComponentType(typeof(MeshRenderer), "MeshRenderer Icon");
+            RegisterComponentType(typeof(SkinnedMeshRenderer), "SkinnedMeshRenderer Icon");
+            RegisterComponentType(typeof(BoxCollider), "BoxCollider Icon");
+            RegisterComponentType(typeof(BoxCollider2D), "BoxCollider2D Icon");
+            RegisterComponentType(typeof(SphereCollider), "SphereCollider Icon");
+            RegisterComponentType(typeof(CircleCollider2D), "CircleCollider2D Icon");
+            RegisterComponentType(typeof(CapsuleCollider), "CapsuleCollider Icon");
+            RegisterComponentType(typeof(CapsuleCollider2D), "CapsuleCollider2D Icon");
+            RegisterComponentType(typeof(Terrain), "Terrain Icon");
+            RegisterComponentType(typeof(WindZone), "WindZone Icon");
+            RegisterComponentType(typeof(TerrainCollider), "TerrainCollider Icon");
+            RegisterComponentType(typeof(CompositeCollider2D), "CompositeCollider2D Icon");
+            RegisterComponentType(typeof(MeshCollider), "MeshCollider Icon");
+            RegisterComponentType(typeof(Rigidbody), "Rigidbody Icon");
+            RegisterComponentType(typeof(Rigidbody2D), "Rigidbody2D Icon");
+            RegisterComponentType(typeof(AudioSource), "AudioSource Icon");
+            RegisterComponentType(typeof(Animation), "Animation Icon");
+            RegisterComponentType(typeof(Animator), "Animator Icon");
+            RegisterComponentType(typeof(PlayableDirector), "PlayableDirector Icon");
+            RegisterComponentType(typeof(Light), "Light Icon");
+            RegisterComponentType(typeof(LightProbeGroup), "LightProbeGroup Icon");
+            RegisterComponentType(typeof(LightProbeProxyVolume), "LightProbeProxyVolume Icon");
+            RegisterComponentType(typeof(ReflectionProbe), "ReflectionProbe Icon");
+            RegisterComponentType(typeof(VisualEffect), "VisualEffect Icon");
+            RegisterComponentType(typeof(ParticleSystem), "ParticleSystem Icon");
+            RegisterComponentType(typeof(Canvas), "Canvas Icon");
+            RegisterComponentType(typeof(Image), "Image Icon");
+            RegisterComponentType(typeof(Text), "Text Icon");
+            RegisterComponentType(typeof(Button), "Button Icon");
+            RegisterComponentType(typeof(Folder), "Folder Icon");
+            RegisterComponentType(typeof(VideoPlayer), "VideoPlayer Icon");
+            
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 try
                 {
                     var types = assembly.GetTypes();
-                    foreach(var type in types)
+                    foreach (var type in types)
                     {
-                        if(type.IsSubclassOf(typeof(MonoBehaviour)) && !type.IsAbstract)
+                        if (type.IsSubclassOf(typeof(MonoBehaviour)) && !type.IsAbstract)
                         {
                             var attrib = type.GetCustomAttribute<AdvancedHierarchyIconAttribute>();
-                            if(attrib != null) RegisterComponentType(type, attrib.icon);
+                            if (attrib != null)
+                            {
+                                RegisterComponentType(type, attrib.icon);
+                            }
                         }
                     }
                 }
@@ -115,17 +134,18 @@ namespace GameplayIngredients.Editor
             fullRect.xMax = EditorGUIUtility.currentViewWidth;
             GameObject o = EditorUtility.InstanceIDToObject(instanceID) as GameObject;
             if (o == null) return;
-            
+
             var c = GUI.color;
 
             bool isFolder = o.GetComponent<Folder>() != null;
 
-            if(isFolder)
+            if (isFolder)
             {
                 fullRect.xMin += 28 + 14 * GetObjectDepth(o.transform);
                 fullRect.width = 16;
 
-                EditorGUI.DrawRect(fullRect, EditorGUIUtility.isProSkin? Styles.proBackground : Styles.personalBackground);
+                EditorGUI.DrawRect(fullRect,
+                    EditorGUIUtility.isProSkin ? Styles.proBackground : Styles.personalBackground);
                 DrawIcon(fullRect, Contents.GetContent(typeof(Folder)), o.GetComponent<Folder>().Color);
             }
             else
@@ -138,10 +158,11 @@ namespace GameplayIngredients.Editor
 
                 foreach (var type in s_Definitions.Keys)
                 {
-                    if(AdvancedHierarchyPreferences.IsVisible(type) && o.GetComponents(type).Length > 0) 
+                    if (AdvancedHierarchyPreferences.IsVisible(type) && o.GetComponents(type).Length > 0)
                         selectionRect = DrawIcon(selectionRect, Contents.GetContent(type), Color.white);
                 }
             }
+
             GUI.color = c;
         }
 
@@ -180,7 +201,7 @@ namespace GameplayIngredients.Editor
             public static GUIContent GetContent(Type t)
             {
                 if (!s_Icons.ContainsKey(t) && s_Definitions.ContainsKey(t))
-                    AddIcon(t,s_Definitions[t]);
+                    AddIcon(t, s_Definitions[t]);
 
                 return s_Icons[t];
             }
@@ -216,10 +237,9 @@ namespace GameplayIngredients.Editor
                     active = {textColor = Color.white},
                     onActive = {textColor = Color.white}
                 };
-                
+
                 icon = new GUIStyle(rightLabel) {padding = new RectOffset(), margin = new RectOffset()};
             }
         }
-
     }
 }
